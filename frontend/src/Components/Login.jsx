@@ -1,7 +1,44 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
+import { FiMail } from "react-icons/fi";
+import { BsKey } from "react-icons/bs";
+import firebase from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
+  const navigate = useNavigate();
+
+  const onLogin = async (e) => {
+    e.preventDefault();
+    if (!email && !password) {
+      console.log("Enter all values");
+    }
+    try {
+      await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password)
+        .then((user) => {
+          console.log("Signed in successfully : ", user);
+          if (!user) return;
+          window.localStorage.setItem(
+            "Mentree_user",
+            JSON.stringify({
+              user: { email },
+              isLoggedIn: true,
+              uid: user.user.uid,
+            })
+          );
+          navigate(`/mentee/${user.user.uid}`);
+        })
+        .catch((error) => {
+          console.log("error : ", error);
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  };
   return (
     <LoginContainer>
       <LoginModal>
@@ -11,14 +48,40 @@ function Login() {
         </LoginTop>
         <LoginFormContainer>
           <LoginFormSection>
-            <LoginInput type="email" id="email" placeholder="Email Address" />
+            <FiMail
+              style={{
+                position: "relative",
+                top: "2rem",
+                left: "-13rem",
+                transform: "scale(1.2)",
+              }}
+            />
+            <LoginInput
+              type="email"
+              id="email"
+              placeholder="Email Address"
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </LoginFormSection>
           <LoginFormSection>
-            <LoginInput type="password" id="password" placeholder="Password" />
+            <BsKey
+              style={{
+                position: "relative",
+                top: "2rem",
+                left: "-13rem",
+                transform: "scale(1.5)",
+              }}
+            />
+            <LoginInput
+              type="password"
+              id="password"
+              placeholder="Password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </LoginFormSection>
         </LoginFormContainer>
         <LoginBtnContainer>
-          <LoginBtn>Login</LoginBtn>
+          <LoginBtn onClick={onLogin}>Login</LoginBtn>
           <NotMember>
             <span>
               Not a member? <a href="/register">Sign up</a>
@@ -101,6 +164,7 @@ const LoginInput = styled.input`
   width: 80%;
   height: 50px;
   padding: 20px;
+  padding-left: 45px;
   border-radius: 5px;
 
   ::placeholder {
@@ -134,6 +198,11 @@ const LoginBtn = styled.button`
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 4px;
+
+  &:hover {
+    background: #cad5e2;
+    color: black;
+  }
 `;
 
 const NotMember = styled.div`
